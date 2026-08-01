@@ -6,6 +6,8 @@ import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
 
 //libreria Para que tenga autoguardado la sesion 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from "react-native";
+import { getFirestore } from "firebase/firestore";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -24,9 +26,18 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 //const analytics = getAnalytics(app);
-// importo el autentificador
-export const auth =  initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
+// const base de datos 
+export const db = getFirestore(app);
+export const auth = Platform.OS === 'web'
+  ? getAuth(app)
+  : (() => {
+      // Import dinámico para que 'getReactNativePersistence' 
+      // solo se intente cargar en plataformas nativas.
+      const { getReactNativePersistence } = require('firebase/auth');
+      return initializeAuth(app, {
+        persistence: getReactNativePersistence(AsyncStorage),
+      });
+    })();
+
 // export
 export default app;
